@@ -1,0 +1,94 @@
+const std = @import("std");
+
+pub fn build(b: *std.Build) void {
+    const target = b.standardTargetOptions(.{});
+
+    const optimize = b.standardOptimizeOption(.{
+        .preferred_optimize_mode = .ReleaseSafe,
+    });
+
+    const mod = b.addModule("pulse", .{
+        .root_source_file = b.path("src/main.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const exe = b.addExecutable(.{
+        .name = "pulse",
+        .root_module = mod,
+    });
+
+    b.installArtifact(exe);
+
+    buildFmt(b);
+    buildCheck(b, mod);
+    buildRun(b, exe);
+    buildTest(b, exe);
+}
+
+/// Check to ensure the executable compiles.
+/// Used for as-you-type verification in IDEs.
+fn buildCheck(b: *std.Build, mod: *std.Build.Module) void {
+    const step = b.step("check", "Check if build compiles");
+
+    step.dependOn(&b.addExecutable(.{
+        .name = "pulse",
+        .root_module = mod,
+    }).step);
+}
+
+/// Build and run the executable.
+fn buildRun(b: *std.Build, exe: *std.Build.Step.Compile) void {
+    const step = b.step("run", "Run the app");
+    const run = b.addRunArtifact(exe);
+
+    step.dependOn(&run.step);
+    run.step.dependOn(&exe.step);
+}
+
+/// Run all tests.
+fn buildTest(b: *std.Build, exe: *std.Build.Step.Compile) void {
+    const step = b.step("test", "Run tests");
+
+    step.dependOn(buildTestFmt(b));
+    step.dependOn(buildTestUnit(b, exe));
+}
+
+/// Collect and run unit tests.
+fn buildTestUnit(b: *std.Build, exe: *std.Build.Step.Compile) *std.Build.Step {
+    const step = b.step("test-unit", "Run unit tests");
+
+    step.dependOn(&b.addRunArtifact(b.addTest(.{
+        .name = "pulse_tests_unit",
+        .root_module = exe.root_module,
+    })).step);
+
+    return step;
+}
+
+const fmt_include = &.{
+    "src",
+    "build.zig",
+    "build.zig.zon",
+};
+
+/// Format source files.
+fn buildFmt(b: *std.Build) void {
+    const step = b.step("fmt", "Format");
+
+    step.dependOn(&b.addFmt(.{
+        .paths = fmt_include,
+    }).step);
+}
+
+/// Check source files for formatting.
+fn buildTestFmt(b: *std.Build) *std.Build.Step {
+    const step = b.step("test-fmt", "Check formatting");
+
+    step.dependOn(&b.addFmt(.{
+        .paths = fmt_include,
+        .check = true,
+    }).step);
+
+    return step;
+}
