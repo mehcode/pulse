@@ -42,6 +42,10 @@ fn buildRun(b: *std.Build, exe: *std.Build.Step.Compile) void {
     const step = b.step("run", "Run the app");
     const run = b.addRunArtifact(exe);
 
+    if (b.args) |args| {
+        run.addArgs(args);
+    }
+
     step.dependOn(&run.step);
     run.step.dependOn(&exe.step);
 }
