@@ -1,7 +1,7 @@
 const std = @import("std");
 const builtin = @import("builtin");
 const Arguments = @import("Arguments.zig");
-const Game = @import("Game.zig");
+const System = @import("System.zig");
 
 pub fn main() !void {
     // choose allocator based on build mode
@@ -24,9 +24,10 @@ fn run(allocator: std.mem.Allocator) !void {
     defer args.deinit();
 
     // open the game ROM specified in the arguments
-    var game = try Game.open(args.game);
-    defer game.close();
+    var system = System{};
+    defer system.deinit();
 
-    std.debug.print("> PRG-ROM {} bytes\n", .{game.prg_rom.len});
-    std.debug.print("> CHR-ROM {} bytes\n", .{game.chr_rom.len});
+    try system.open(args.game);
+
+    system.run();
 }

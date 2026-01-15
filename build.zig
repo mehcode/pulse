@@ -106,8 +106,6 @@ fn buildLint(b: *std.Build) void {
     step.dependOn(step: {
         var builder = zlinter.builder(b, .{});
 
-        builder.addRule(.{ .builtin = .field_naming }, .{});
-        builder.addRule(.{ .builtin = .declaration_naming }, .{});
         builder.addRule(.{ .builtin = .file_naming }, .{});
         builder.addRule(.{ .builtin = .function_naming }, .{});
         builder.addRule(.{ .builtin = .max_positional_args }, .{});

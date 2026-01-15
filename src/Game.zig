@@ -61,7 +61,7 @@ pub fn open(path: []const u8) !Game {
     return .{
         ._file = file,
         ._rom = rom,
-        .prg_rom = rom[16..prg_rom_size],
+        .prg_rom = rom[16 .. prg_rom_size + 16],
         .chr_rom = rom[16 + prg_rom_size ..],
     };
 }
