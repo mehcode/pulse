@@ -21,7 +21,6 @@ pub fn main() !void {
 /// such as command-line argument parsing.
 fn generalPurposeAllocator() std.mem.Allocator {
     // TODO: look into how conventionally to decide between the smp_allocator and debugAllocator
-    // return std.heap.smp_allocator;
 
     var debug = std.heap.DebugAllocator(.{
         .thread_safe = false,
