@@ -1,8 +1,7 @@
 const std = @import("std");
 const builtin = @import("builtin");
-
-const Arguments = @import("arguments.zig").Arguments;
-const Game = @import("game.zig").Game;
+const Arguments = @import("Arguments.zig");
+const Game = @import("Game.zig");
 
 pub fn main() !void {
     // choose allocator based on build mode
