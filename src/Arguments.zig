@@ -6,21 +6,21 @@ const Arguments = @This();
 
 /// Reference to the argument iterator,
 /// used for later deinitialization on Windows.
-_iterator: std.process.ArgIterator,
+_iterator: std.process.Args.Iterator,
 
 /// Path to the game file.
 game: []const u8,
 
 /// Parses command-line arguments into an Args struct, for Pulse.
-pub fn parse(allocator: std.mem.Allocator) !Arguments {
-    var args = try std.process.argsWithAllocator(allocator);
+pub fn parse(allocator: std.mem.Allocator, args: std.process.Args) !Arguments {
+    var iterator = try args.iterateAllocator(allocator);
 
     // skip the first argument, which is the program name
-    _ = args.skip();
+    _ = iterator.skip();
 
     var game: ?[]const u8 = null;
 
-    while (args.next()) |arg| {
+    while (iterator.next()) |arg| {
         if (std.mem.startsWith(u8, arg, "-")) {
             // TODO: handle flags
             continue;
@@ -34,7 +34,7 @@ pub fn parse(allocator: std.mem.Allocator) !Arguments {
     }
 
     return .{
-        ._iterator = args,
+        ._iterator = iterator,
         .game = game orelse {
             return error.GameMissing;
         },

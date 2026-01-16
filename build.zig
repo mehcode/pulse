@@ -1,5 +1,4 @@
 const std = @import("std");
-const zlinter = @import("zlinter");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
@@ -25,7 +24,6 @@ pub fn build(b: *std.Build) void {
     buildCheck(b, mod);
     buildRun(b, exe);
     buildTest(b, exe);
-    buildLint(b);
 }
 
 /// Check to ensure the executable compiles.
@@ -97,30 +95,4 @@ fn buildTestFmt(b: *std.Build) *std.Build.Step {
     }).step);
 
     return step;
-}
-
-/// Lint source code.
-fn buildLint(b: *std.Build) void {
-    const step = b.step("lint", "Lint source code.");
-
-    step.dependOn(step: {
-        var builder = zlinter.builder(b, .{});
-
-        builder.addRule(.{ .builtin = .file_naming }, .{});
-        builder.addRule(.{ .builtin = .function_naming }, .{});
-        builder.addRule(.{ .builtin = .max_positional_args }, .{});
-        builder.addRule(.{ .builtin = .no_comment_out_code }, .{});
-        builder.addRule(.{ .builtin = .no_deprecated }, .{});
-        builder.addRule(.{ .builtin = .no_empty_block }, .{});
-        builder.addRule(.{ .builtin = .no_hidden_allocations }, .{});
-        builder.addRule(.{ .builtin = .no_literal_only_bool_expression }, .{});
-        builder.addRule(.{ .builtin = .no_orelse_unreachable }, .{});
-        builder.addRule(.{ .builtin = .no_panic }, .{});
-        builder.addRule(.{ .builtin = .no_swallow_error }, .{});
-        builder.addRule(.{ .builtin = .no_unused }, .{});
-        builder.addRule(.{ .builtin = .require_braces }, .{});
-        builder.addRule(.{ .builtin = .require_errdefer_dealloc }, .{});
-
-        break :step builder.build();
-    });
 }

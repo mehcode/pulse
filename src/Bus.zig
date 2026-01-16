@@ -23,9 +23,9 @@ game: ?Game = null,
 
 /// Cleans up resources used by the bus.
 /// If a game is loaded, closes it and clears the game reference.
-pub fn deinit(self: *Bus) void {
+pub fn deinit(self: *Bus, io: std.Io) void {
     if (self.game) |*game| {
-        game.close();
+        game.close(io);
     }
 
     self.game = null;

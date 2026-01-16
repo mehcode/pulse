@@ -6,7 +6,7 @@ const std = @import("std");
 const Game = @This();
 
 /// Retain a handle to the file to keep it open while memory-mapped.
-_file: std.fs.File,
+_file: std.Io.File,
 
 /// Memory-mapped representation of the source file.
 _rom: []align(std.heap.page_size_min) u8,
@@ -19,10 +19,10 @@ chr_rom: []const u8,
 
 /// Opens a game from the specified file path.
 /// Currently, only supports the most basic iNES 1.x format.
-pub fn open(path: []const u8) !Game {
-    const cwd = std.fs.cwd();
+pub fn open(io: std.Io, path: []const u8) !Game {
+    const cwd = std.Io.Dir.cwd();
 
-    const file = try cwd.openFile(path, .{
+    const file = try cwd.openFile(io, path, .{
         .mode = .read_only,
     });
 
@@ -30,7 +30,10 @@ pub fn open(path: []const u8) !Game {
     // https://www.nesdev.org/wiki/NES_2.0
     // https://www.nesdev.org/wiki/INES
     var header: [16]u8 = undefined;
-    try readExact(file, &header);
+    const n = try file.readPositionalAll(io, &header, 0);
+    if (n != header.len) {
+        return error.GameInvalidHeader;
+    }
 
     // validate the iNES identifier
     if (!std.mem.eql(u8, header[0..4], "NES\x1a")) {
@@ -49,10 +52,11 @@ pub fn open(path: []const u8) !Game {
 
     // TODO: add alternative method for windows support
     const size = prg_rom_size + chr_rom_size;
+
     const rom = try std.posix.mmap(
         null,
         size,
-        std.posix.PROT.READ,
+        .{ .READ = true },
         .{ .TYPE = .SHARED },
         file.handle,
         0,
@@ -67,19 +71,7 @@ pub fn open(path: []const u8) !Game {
 }
 
 /// Closes the game, unmapping the ROM from memory and closing the file.
-pub fn close(self: *Game) void {
+pub fn close(self: *Game, io: std.Io) void {
     std.posix.munmap(self._rom);
-    self._file.close();
-}
-
-// NOTE: anytype is like duck typing in python but checked at compile time
-fn readExact(reader: anytype, buffer: []u8) !void {
-    var out = buffer;
-
-    while (out.len != 0) {
-        const n = try reader.read(out);
-        if (n == 0) return error.UnexpectedEof;
-
-        out = out[n..];
-    }
+    self._file.close(io);
 }

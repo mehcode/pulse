@@ -1,5 +1,7 @@
 //! Container that coordinates components of the NES.
 //! The System struct represents a complete NES emulator instance.
+
+const std = @import("std");
 const Cpu = @import("Cpu.zig");
 const Bus = @import("Bus.zig");
 const Game = @import("Game.zig");
@@ -14,8 +16,8 @@ bus: Bus = .{},
 
 /// Cleans up resources used by the system.
 /// Deinitializes the bus, which closes any loaded game.
-pub fn deinit(self: *System) void {
-    self.bus.deinit();
+pub fn deinit(self: *System, io: std.Io) void {
+    self.bus.deinit(io);
 }
 
 /// Opens and loads a game from the given file path.
@@ -25,8 +27,8 @@ pub fn deinit(self: *System) void {
 /// program counter to the address specified in the cartridge's reset vector
 /// at `$FFFC` - `$FFFD`.
 ///
-pub fn open(self: *System, path: []const u8) !void {
-    self.bus.game = try Game.open(path);
+pub fn open(self: *System, io: std.Io, path: []const u8) !void {
+    self.bus.game = try Game.open(io, path);
 
     // after when opening a game
     // re-initialize the CPU by calling the /RESET vector

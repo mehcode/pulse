@@ -57,7 +57,7 @@ const table: [0xff]?Instruction = blk: {
 ///
 fn new(mnemonic: []const u8, comptime operation: anytype, comptime operands: anytype) Instruction {
     return .{ .mnemonic = mnemonic, .operation = struct {
-        pub fn execute(cpu: *Cpu, bus: *Bus) void {
+        fn execute(cpu: *Cpu, bus: *Bus) void {
             @call(.auto, operation, operands ++ .{ cpu, bus });
         }
     }.execute };
